@@ -203,7 +203,7 @@ fn generate_wordcloud_html(
     #[cfg(target_os = "windows")]
     {
         let _ = std::process::Command::new("cmd")
-            .args(&["/C", "start", "", output_path])
+            .args(["/C", "start", "", output_path])
             .spawn();
     }
     #[cfg(target_os = "macos")]
@@ -229,15 +229,15 @@ struct AppState {
 }
 
 struct MainWindow {
-    wnd:          gui::WindowMain,
-    path_label:   gui::Label,
-    open_btn:     gui::Button,
+    wnd: gui::WindowMain,
+    path_label: gui::Label,
+    open_btn: gui::Button,
     generate_btn: gui::Button,
-    clear_btn:    gui::Button,
-    quit_btn:     gui::Button,
-    list_view:    gui::ListView,
-    status_bar:   gui::StatusBar,
-    state:        Rc<RefCell<AppState>>,
+    clear_btn: gui::Button,
+    quit_btn: gui::Button,
+    list_view: gui::ListView,
+    status_bar: gui::StatusBar,
+    state: Rc<RefCell<AppState>>,
 }
 
 impl MainWindow {
@@ -327,11 +327,7 @@ impl MainWindow {
             gui::ListViewOpts {
                 position: gui::dpi(14, 86),
                 size: gui::dpi(win_w - 28, win_h - 160),
-                columns: &[
-                    ("序号", 55),
-                    ("词语", 300),
-                    ("词频", 80),
-                ],
+                columns: &[("序号", 55), ("词语", 300), ("词频", 80)],
                 resize_behavior: (gui::Horz::Resize, gui::Vert::Resize),
                 ..Default::default()
             },
@@ -340,10 +336,7 @@ impl MainWindow {
         // ── 状态栏 ──
         let status_bar = gui::StatusBar::new(
             &wnd,
-            &[
-                gui::SbPart::Proportional(3),
-                gui::SbPart::Proportional(2),
-            ],
+            &[gui::SbPart::Proportional(3), gui::SbPart::Proportional(2)],
         );
 
         let state = Rc::new(RefCell::new(AppState {
@@ -383,10 +376,9 @@ impl MainWindow {
         let generate_btn_init = generate_btn.clone();
         wnd.on().wm_create({
             move |_| -> w::AnyResult<i32> {
-                let _ = status_bar_init.parts().set_texts(&[
-                    Some("就绪 — 点击「打开文件」选择文本文件"),
-                    Some(""),
-                ]);
+                status_bar_init
+                    .parts()
+                    .set_texts(&[Some("就绪 — 点击「打开文件」选择文本文件"), Some("")]);
                 generate_btn_init.hwnd().EnableWindow(false);
                 Ok(0)
             }
@@ -444,11 +436,7 @@ impl MainWindow {
 
                         for (i, (word, count)) in entries.iter().enumerate().take(100) {
                             list_view.items().add(
-                                &[
-                                    &(i + 1).to_string(),
-                                    word.as_str(),
-                                    &count.to_string(),
-                                ],
+                                &[&(i + 1).to_string(), word.as_str(), &count.to_string()],
                                 None,
                                 (),
                             )?;
@@ -463,10 +451,9 @@ impl MainWindow {
                         // 更新状态栏
                         let sb_left = format!("文件：{}", path_str);
                         let sb_right = format!("共 {} 个不重复词", unique_count);
-                        let _ = status_bar.parts().set_texts(&[
-                            Some(sb_left.as_str()),
-                            Some(sb_right.as_str()),
-                        ]);
+                        status_bar
+                            .parts()
+                            .set_texts(&[Some(sb_left.as_str()), Some(sb_right.as_str())]);
                     }
                     Err(e) => {
                         let _ = wnd.hwnd().MessageBox(
@@ -542,10 +529,7 @@ impl MainWindow {
                 }
                 path_label.hwnd().SetWindowText("（未选择文件）")?;
                 generate_btn.hwnd().EnableWindow(false);
-                let _ = status_bar.parts().set_texts(&[
-                    Some("就绪"),
-                    Some(""),
-                ]);
+                status_bar.parts().set_texts(&[Some("就绪"), Some("")]);
                 Ok(())
             }
         });
