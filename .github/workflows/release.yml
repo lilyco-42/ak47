@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-and-release:
+    name: Build & Publish Release
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-release-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-release-
+
+      - name: Build release
+        run: cargo build --release
+
+      - name: Package artifact
+        shell: bash
+        run: |
+          mkdir dist
+          cp target/release/ak47.exe dist/
+          cp README.md dist/ 2>/dev/null || true
+          7z a ak47-${{ github.ref_name }}-x86_64-pc-windows-msvc.zip ./dist/*
+
+      - name: Generate release notes
+        shell: bash
+        run: |
+          echo "## 🔗 下载" > release-notes.md
+          echo "" >> release-notes.md
+          echo "| 文件 | 说明 |" >> release-notes.md
+          echo "|------|------|" >> release-notes.md
+          echo "| ak47-${{ github.ref_name }}-x86_64-pc-windows-msvc.zip | Windows x64 可执行文件 |" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "## 🚀 使用方式" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "解压后双击 \`ak47.exe\` 即可运行。" >> release-notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          body_path: release-notes.md
+          files: ak47-${{ github.ref_name }}-x86_64-pc-windows-msvc.zip
+          generate_release_notes: true
